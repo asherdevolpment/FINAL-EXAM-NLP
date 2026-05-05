@@ -1,0 +1,7 @@
+.venv/
+archive.zip
+training.1600000.processed.noemoticon.csv
+*.zip
+*.csv
+__pycache__/
+.ipynb_checkpoints/

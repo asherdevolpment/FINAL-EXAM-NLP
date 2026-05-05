@@ -1,0 +1,8 @@
+{
+  "python.defaultInterpreterPath": "C:\\Users\\USER\\Desktop\\ACADEMICS\\nlp\\EXAM\\.venv\\Scripts\\python.exe",
+  "python.analysis.extraPaths": [
+    "C:\\Users\\USER\\AppData\\Roaming\\Python\\Python314\\site-packages",
+    "C:\\Python314\\Lib\\site-packages"
+  ],
+  "jupyter.jupyterServerType": "local"
+}

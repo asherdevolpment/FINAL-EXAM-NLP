@@ -1,4 +1,7 @@
 .venv/
+.venv_project/
+tmp/
+jupyter_runtime/
 archive.zip
 training.1600000.processed.noemoticon.csv
 *.zip

@@ -1,11 +1,10 @@
 import argparse
-import json
-import math
 import re
 from collections import Counter
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+from nltk import ngrams
 import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
@@ -15,8 +14,9 @@ from sklearn.metrics import silhouette_score
 from sklearn.metrics.pairwise import cosine_similarity
 
 
-DATA_FILE = Path("News_Category_Dataset_v3.json")
-OUTPUT_DIR = Path("outputs")
+BASE_DIR = Path(__file__).resolve().parent
+DATA_FILE = BASE_DIR / "News_Category_Dataset_v3.json"
+OUTPUT_DIR = BASE_DIR / "outputs"
 RANDOM_STATE = 42
 
 EXTRA_STOPWORDS = {
@@ -37,10 +37,20 @@ EXTRA_STOPWORDS = {
 STOPWORDS = set(ENGLISH_STOP_WORDS).union(EXTRA_STOPWORDS)
 
 
+def repair_mojibake(value: str) -> str:
+    """Repair common UTF-8 text that was accidentally decoded as Latin-1."""
+    if not isinstance(value, str) or "â" not in value:
+        return value
+    try:
+        return value.encode("latin-1").decode("utf-8")
+    except UnicodeError:
+        return value
+
+
 def load_data(path: Path, sample_size: int) -> pd.DataFrame:
     df = pd.read_json(path, lines=True)
-    df["headline"] = df["headline"].fillna("")
-    df["short_description"] = df["short_description"].fillna("")
+    df["headline"] = df["headline"].fillna("").apply(repair_mojibake)
+    df["short_description"] = df["short_description"].fillna("").apply(repair_mojibake)
     df["document"] = (df["headline"] + " " + df["short_description"]).str.strip()
     df = df[df["document"].str.len() > 0].copy()
     if sample_size and sample_size < len(df):
@@ -77,7 +87,7 @@ def join_tokens(tokens: list[str]) -> str:
 def ngram_counts(token_lists: list[list[str]], n: int, top_n: int = 10) -> list[tuple[str, int]]:
     counts = Counter()
     for tokens in token_lists:
-        counts.update(" ".join(tokens[i : i + n]) for i in range(len(tokens) - n + 1))
+        counts.update(" ".join(group) for group in ngrams(tokens, n))
     return counts.most_common(top_n)
 
 
@@ -128,12 +138,31 @@ def choose_k_by_silhouette(tfidf_matrix, k_values: list[int]) -> tuple[int, list
         model = KMeans(n_clusters=k, random_state=RANDOM_STATE, n_init=10)
         labels = model.fit_predict(tfidf_matrix)
         sample_size = min(2000, tfidf_matrix.shape[0])
-        score = silhouette_score(tfidf_matrix, labels, sample_size=sample_size, random_state=RANDOM_STATE)
+        score = silhouette_score(
+            tfidf_matrix,
+            labels,
+            metric="cosine",
+            sample_size=sample_size,
+            random_state=RANDOM_STATE,
+        )
         rows.append({"k": k, "inertia": float(model.inertia_), "silhouette": float(score)})
         if score > best_score:
             best_k = k
             best_score = score
     return best_k, rows
+
+
+def sampled_silhouette(features, labels) -> float:
+    sample_size = min(2000, features.shape[0])
+    return float(
+        silhouette_score(
+            features,
+            labels,
+            metric="cosine",
+            sample_size=sample_size,
+            random_state=RANDOM_STATE,
+        )
+    )
 
 
 def plot_elbow(rows: list[dict], output_path: Path) -> None:
@@ -217,8 +246,10 @@ def write_report(
     pairs: list[dict],
     elbow_rows: list[dict],
     chosen_k: int,
+    tfidf_cluster_silhouette: float,
     cluster_rows: list[dict],
     embedding_method: str,
+    embedding_cluster_silhouette: float,
     embedding_cluster_rows: list[dict],
 ) -> None:
     total_docs = len(df)
@@ -300,6 +331,8 @@ def write_report(
             "",
             "## Transformer Embedding Comparison",
             f"Embedding method used by this run: {embedding_method}",
+            f"TF-IDF cluster silhouette score: {tfidf_cluster_silhouette:.4f}.",
+            f"Transformer/SVD embedding cluster silhouette score: {embedding_cluster_silhouette:.4f}.",
             "",
         markdown_table(pd.DataFrame(embedding_cluster_rows), ["cluster", "size", "topic_label", "common_terms", "sample_headlines"]),
             "",
@@ -347,6 +380,7 @@ def main() -> None:
 
     kmeans = KMeans(n_clusters=chosen_k, random_state=RANDOM_STATE, n_init=10)
     df["tfidf_cluster"] = kmeans.fit_predict(tfidf_matrix)
+    tfidf_cluster_silhouette = sampled_silhouette(tfidf_matrix, df["tfidf_cluster"].to_numpy())
 
     cluster_rows = []
     for cluster_id in range(chosen_k):
@@ -367,6 +401,7 @@ def main() -> None:
     embeddings, embedding_method = transformer_or_svd_embeddings(df["clean_text"].tolist(), tfidf_matrix)
     emb_kmeans = KMeans(n_clusters=chosen_k, random_state=RANDOM_STATE, n_init=10)
     df["embedding_cluster"] = emb_kmeans.fit_predict(embeddings)
+    embedding_cluster_silhouette = sampled_silhouette(embeddings, df["embedding_cluster"].to_numpy())
 
     embedding_cluster_rows = []
     for cluster_id in range(chosen_k):
@@ -398,6 +433,20 @@ def main() -> None:
     pd.DataFrame(embedding_cluster_rows).to_csv(OUTPUT_DIR / "q2_embedding_cluster_summary.csv", index=False)
     pd.DataFrame(pairs).to_csv(OUTPUT_DIR / "q2_similarity_pairs.csv", index=False)
     pd.DataFrame(elbow_rows).to_csv(OUTPUT_DIR / "q2_elbow_scores.csv", index=False)
+    pd.DataFrame(
+        [
+            {
+                "representation": "TF-IDF",
+                "k": chosen_k,
+                "silhouette": tfidf_cluster_silhouette,
+            },
+            {
+                "representation": embedding_method,
+                "k": chosen_k,
+                "silhouette": embedding_cluster_silhouette,
+            },
+        ]
+    ).to_csv(OUTPUT_DIR / "q2_model_comparison.csv", index=False)
 
     write_report(
         df,
@@ -410,8 +459,10 @@ def main() -> None:
         pairs,
         elbow_rows,
         chosen_k,
+        tfidf_cluster_silhouette,
         cluster_rows,
         embedding_method,
+        embedding_cluster_silhouette,
         embedding_cluster_rows,
     )
 
@@ -421,6 +472,8 @@ def main() -> None:
     print(f"TF-IDF shape: {tfidf_matrix.shape}")
     print(f"Chosen k: {chosen_k}")
     print(f"Embedding method: {embedding_method}")
+    print(f"TF-IDF cluster silhouette: {tfidf_cluster_silhouette:.4f}")
+    print(f"Embedding cluster silhouette: {embedding_cluster_silhouette:.4f}")
     print(f"Outputs written to: {OUTPUT_DIR.resolve()}")
 
 

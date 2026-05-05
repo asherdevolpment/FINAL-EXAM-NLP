@@ -106,15 +106,15 @@ Cosine similarity is high when two TF-IDF vectors point in a similar direction, 
 ## Elbow and Cluster Selection
 | k | inertia | silhouette |
 | --- | --- | --- |
-| 2 | 7935.959857706961 | 0.0013188818707594145 |
-| 3 | 7908.009429764546 | 0.0020835001193386165 |
-| 4 | 7894.054350098777 | 0.0023862630113127663 |
-| 5 | 7882.962909733719 | 0.0027835693739150466 |
-| 6 | 7872.354116203972 | 0.0028891202893537747 |
-| 7 | 7862.986460864737 | 0.003236096339791634 |
-| 8 | 7850.777745421792 | 0.0034852739982292134 |
-| 9 | 7843.143338200328 | 0.0036813645843114715 |
-| 10 | 7835.143378033716 | 0.0027100576723044184 |
+| 2 | 7935.959857706963 | 0.0023598827321122144 |
+| 3 | 7908.009429764551 | 0.0037623813512356755 |
+| 4 | 7894.054350098769 | 0.004347883989196984 |
+| 5 | 7882.962909733719 | 0.005167335841622737 |
+| 6 | 7872.354116203972 | 0.00536717173127632 |
+| 7 | 7862.986460864744 | 0.00614366983533512 |
+| 8 | 7850.777745421792 | 0.006533371526418195 |
+| 9 | 7843.143338200334 | 0.0068923652147515994 |
+| 10 | 7835.143378033719 | 0.004951861827958889 |
 
 Chosen k for the final TF-IDF K-Means model: 9. The plot is saved at `outputs/q2_elbow_tfidf.png` and includes a title, x-axis label, y-axis labels, legend, and grid.
 
@@ -132,19 +132,21 @@ Chosen k for the final TF-IDF K-Means model: 9. The plot is saved at `outputs/q2
 | 8 | 481 | Personal life and relationships | way, best, make, life, thing, work, love, better, don, want | April Superfoods: 5 In-Season Picks \| A Heart-to-Heart With the LGBTQ Community \| Gay One-Night Stands: Are They Keeping You From A Real Relationship? |
 
 ## Transformer Embedding Comparison
-Embedding method used by this run: TruncatedSVD fallback used because SentenceTransformer was unavailable locally: ModuleNotFoundError: No module named 'sentence_transformers'
+Embedding method used by this run: SentenceTransformer all-MiniLM-L6-v2
+TF-IDF cluster silhouette score: 0.0069.
+Transformer/SVD embedding cluster silhouette score: 0.0448.
 
 | cluster | size | topic_label | common_terms | sample_headlines |
 | --- | --- | --- | --- | --- |
-| 0 | 289 | Style, photos, and lifestyle media | look, photo, world, face, know, don, think, color | The Happiest Countries In The World (INFOGRAPHIC) \| Gills, Pills and Obesity Genes \| Table Talk: Local School Lunches |
-| 1 | 4535 | World news and international affairs | state, world, american, right, health, help, school, live | Rick Snyder Says He's Releasing All His Emails About The Flint Water Crisis \| Mark Sanchez Pick Six: Bryan Scott Returns Interception For Touchdown In Jets-Bills (GIF) \| Selena Gomez's AMAs Dress Is Very Sexy |
-| 2 | 1900 | Style, photos, and lifestyle media | photo, way, make, thing, life, know, want, best | April Superfoods: 5 In-Season Picks \| 10 Great State Fairs For Deep-Fried Fun (PHOTOS) \| Mom Of Transgender Teen Describes Her Experience As A Gift |
-| 3 | 38 | Style, photos, and lifestyle media | check, twitter, facebook, pinterest, tumblr, photo, want, sure | Check Out Jiff The Pomeranian's New Move \| Michelle Obama At The 2008 Convention And Today: Has Her Look Changed? (PHOTOS) \| Taylor Schilling, 'The Lucky One' Star: Look Of The Day |
-| 4 | 191 | Health and social issues | women, men, girl, work, american, want, world, busines | Youngest Assailant In Delhi Gang Rape Case Released From Prison \| Divorce Advice For Those About To Marry \| Obama Shares How Beyoncé Brings Sasha, Malia And The UConn Women's Basketball Team Together |
-| 5 | 545 | Politics and elections | trump, donald, president, republican, gop, campaign, american, clinton | Insensitive Washington Times Columnist Puts His Idiocy On Display \| The Problem With Paternalizing Disabled People To Protest Donald Trump \| Khizr And Ghazala Khan Endorse Democrat In Virginia Governor's Race |
-| 6 | 252 | Video and entertainment | video, watch, game, look, photo, home, man, way | Gloria Baume, 'Teen Vogue' Fashion Director Opens Her Closet (VIDEO) \| This Backyard Transforms From Plain To Party-Ready On A Budget (VIDEO) \| Paul Ryan Made A Video Hyping The GOP. But He Forgot Someone. |
-| 7 | 61 | Health and social issues | sleep, night, study, hour, better, don, camp, health | Sleep Deprivation Linked With Buying More High-Calorie Foods While Grocery Shopping \| Ending the Life of a Pet \| The Good-Karma Guide to Holiday Travel |
-| 8 | 189 | Politics and elections | house, white, trump, president, obama, republican, democrat, photo | Michelle Obama Reflects On ‘Scary’ Time At Princeton With Sweet Throwback Snap \| Watch GOP Lawmakers Run Away When Asked If They Actually Read The Health Care Bill \| Panda Express To Sub Brown Rice For White In Fried Rice Nationwide |
+| 0 | 766 | World news and international affairs | kill, police, state, gun, law, death, arrest, shoot | Rick Snyder Says He's Releasing All His Emails About The Flint Water Crisis \| Dustin Hoffman Accusers Speak Out About Alleged Abuse In Joint NBC Interview \| Honolulu Police Officer Indicted On Charges Of Assault, Theft, Property Damage |
+| 1 | 842 | Health and social issues | life, way, make, need, health, help, feel, thing | Non-Reactive Listening \| Who Are You Letting Into Your Head? \| We Tried It: SLT Yoga |
+| 2 | 1247 | Video and entertainment | video, star, watch, love, game, live, music, film | Mark Sanchez Pick Six: Bryan Scott Returns Interception For Touchdown In Jets-Bills (GIF) \| Check Out Jiff The Pomeranian's New Move \| Global Forgiveness Day: 5 Celebs Who Forgave Their Exes |
+| 3 | 1226 | Politics and elections | trump, donald, president, republican, gop, obama, house, clinton | Insensitive Washington Times Columnist Puts His Idiocy On Display \| The Problem With Paternalizing Disabled People To Protest Donald Trump \| Sean Penn Confirms Steve Bannon Was A 'Bitter Hollywood Wannabe' |
+| 4 | 655 | Parenting and family | kid, parent, children, mom, child, baby, dad, thing | Mom Of Transgender Teen Describes Her Experience As A Gift \| Pregnant Nurse, Dreonna Breton, Fired For Refusing Flu Vaccine \| 10 Reasons Why It's OK To Spend New Year's Eve At Home, As Told In GIFs |
+| 5 | 621 | Style, photos, and lifestyle media | food, recipe, eat, best, make, way, photo, restaurant | April Superfoods: 5 In-Season Picks \| 10 Great State Fairs For Deep-Fried Fun (PHOTOS) \| How To Pit Cherries Without Using A Cherry Pitter |
+| 6 | 618 | Health and social issues | women, gay, marriage, woman, right, men, divorce, american | Barbies May Limit Girls' Career Aspirations (STUDY) \| Will Smith Joins Wife Jada Pinkett Smith In Oscars Boycott \| Queen Elizabeth Gay Rights: Royal Expected To Sign Commonwealth Charter Against Discrimination |
+| 7 | 1188 | World news and international affairs | world, state, need, travel, want, city, change, make | I Visited 29 States In 90 Days For Just $3,600 \| 'Cash Mobs' Use Social Media To Splurge In Locally Owned Stores \| Why Los Angeles Sends Failing Students On To The Next Grade |
+| 8 | 837 | Style, photos, and lifestyle media | photo, look, fashion, style, home, art, best, wedd | Selena Gomez's AMAs Dress Is Very Sexy \| Ashton Kutcher And Mila Kunis' Matching Olympics Outfits Are So Damn Cute, They Deserve A Medal \| Gloria Baume, 'Teen Vogue' Fashion Director Opens Her Closet (VIDEO) |
 
 Transformer sentence embeddings usually improve clustering when they are available because they represent semantic meaning, not only exact shared words. For instance, documents about elections can be close even when one says `campaign` and another says `voters`. TF-IDF is easier to interpret and faster, but it is more sensitive to vocabulary mismatch.
 
